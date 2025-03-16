@@ -30,7 +30,7 @@ Utilizamos o Azure Data Factory para extrair dados de uma API e armazená-los em
 
 ### Bronze Layer
 
-Na camada Bronze, os dados são lidos utilizando PySpark a partir da Landing Zone.
+    Na camada Bronze, os dados são lidos utilizando PySpark a partir da Landing Zone.
     1.1. Mantemos o formato JSON, mas adicionamos metadados úteis, como:
     1.2. Origem dos dados
     1.3. Data de processamento
