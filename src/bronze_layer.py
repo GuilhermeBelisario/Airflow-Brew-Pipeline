@@ -37,9 +37,6 @@ def adicionado_os_arquivos_da_para_processar(container_landing: str,connection_a
 
         # Leitura e adição de meta dados
         df = spark.read.json(caminho_do_arquivo_baixado)
-        print(f"""DataFrame criado para o arquivo: {item}
-            SCHEMA: {df.printSchema()}
-            """)
         
         df = (df
             .withColumn('data_de_processamento', current_timestamp())
@@ -49,24 +46,31 @@ def adicionado_os_arquivos_da_para_processar(container_landing: str,connection_a
             .withColumn('nome_do_arquivo_original', lit(item))
         )
 
+        print(f"""DataFrame criado para o arquivo: {item}
+        SCHEMA:
+            """)
+        df.printSchema()
+
         temp_dir = os.path.abspath(f"temp_{item.replace('/', '_')}.json")
         df.coalesce(1).write.json(temp_dir, mode="overwrite")
-
         arquivos_processados = [f for f in os.listdir(temp_dir) if f.endswith('.json')]
+
         if not arquivos_processados:
             raise FileNotFoundError(f"Nenhum arquivo JSON encontrado em {temp_dir}")
-
+     
         caminho_arquivos_processados = os.path.join(temp_dir, arquivos_processados[0])
-
         destino_final = os.path.join('data', f"processed_{item}.json")
+        
         if os.path.exists(destino_final):
             os.remove(destino_final)  # Remove o arquivo processado anterior, se existir
+
         shutil.move(caminho_arquivos_processados, destino_final)
         print(f"Arquivo movido para: {destino_final}")
+
         try: 
             #Reescrevendo o dado na bronze
             conexao_container_bronze = conexao.get_blob_client(container=container_bronze, blob=f"processed_{item}.json")
-            with open(caminho_do_arquivo_baixado,'rb') as data:
+            with open(destino_final,'rb') as data:
                 conexao_container_bronze.upload_blob(data, overwrite=False)
 
             shutil.rmtree(temp_dir)
@@ -74,24 +78,25 @@ def adicionado_os_arquivos_da_para_processar(container_landing: str,connection_a
 
         except Exception as e:
             print(f"Erro ao processar o arquivo {item}: {str(e)}")
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
 
-            try:
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
-                for nome_arquivo in os.listdir('data'):
-                    caminho_pasta_para_limpar = os.path.join('data', nome_arquivo)
-                    if os.path.isfile(caminho_pasta_para_limpar) or os.path.islink(caminho_pasta_para_limpar):
-                        os.unlink(caminho_pasta_para_limpar)
-                    elif os.path.isdir(caminho_pasta_para_limpar):
-                        shutil.rmtree(caminho_pasta_para_limpar)
+        try:
 
-            except FileNotFoundError as fnfe:
-                print(f"Erro: Arquivo não encontrado. Detalhes: {fnfe}")
-            except PermissionError as pe:
-                print(f"Erro: Permissão negada. Detalhes: {pe}")
-            except Exception as e:
-                print(f"Erro inesperado ao manipular arquivos. Detalhes: {e}")
+            for nome_arquivo in os.listdir('data'):
+                caminho_pasta_para_limpar = os.path.join('data', nome_arquivo)
+                if os.path.isfile(caminho_pasta_para_limpar) or os.path.islink(caminho_pasta_para_limpar):
+                    os.unlink(caminho_pasta_para_limpar)
+                elif os.path.isdir(caminho_pasta_para_limpar):
+                    shutil.rmtree(caminho_pasta_para_limpar)
+
+        except FileNotFoundError as fnfe:
+            print(f"Erro: Arquivo não encontrado. Detalhes: {fnfe}")
+        except PermissionError as pe:
+            print(f"Erro: Permissão negada. Detalhes: {pe}")
+        except Exception as e:
+            print(f"Erro inesperado ao manipular arquivos. Detalhes: {e}")
                 
 
     return print("Landing Zone para Bronze Layer finalizada!")
