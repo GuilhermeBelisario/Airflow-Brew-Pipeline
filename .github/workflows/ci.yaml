@@ -18,7 +18,6 @@ jobs:
       
       - name: Checkout code
         uses: actions/checkout@v3
-
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -28,10 +27,11 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
-      # Passo 4: Instala as dependências do projeto
-      - name: Install dependencies
-        run: poetry install
+      - name: Pytest Install
+        run: poetry add pytest
 
-      # Passo 5: Executa os testes com pytest
+      - name: Azure Lib Install
+        run: poetry add azure-storage-blob
+  
       - name: Run tests
         run: poetry run pytest tests/teste_de_conexao.py
