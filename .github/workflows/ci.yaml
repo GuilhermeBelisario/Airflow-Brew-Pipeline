@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest  
 
     steps:
-      
       - name: Checkout code
         uses: actions/checkout@v3
       
@@ -24,11 +23,11 @@ jobs:
         with:
           python-version: '3.12.1'
 
-      - name: Install Poetry
-        run: pip install poetry
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Pytest Install
-        run: poetry add pytest
+      - name: Install pytest
+        run: pip install pytest
   
       - name: Run tests
-        run: poetry run pytest tests/ -v
+        run: pytest tests/ -v
