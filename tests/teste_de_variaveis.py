@@ -1,7 +1,8 @@
 import pytest
 import os
+from dotenv import load_dotenv
 
-conexao_azure = os.getenv("AZURE_ACCESS_KEY")
+load_dotenv()
 
 @pytest.fixture
 def conexao_azure():
