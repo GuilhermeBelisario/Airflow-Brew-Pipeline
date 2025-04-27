@@ -29,9 +29,6 @@ jobs:
 
       - name: Pytest Install
         run: poetry add pytest
-
-      - name: Azure Lib Install
-        run: poetry add azure-storage-blob
   
       - name: Run tests
-        run: poetry run pytest tests/teste_de_conexao.py
+        run: poetry run pytest tests/ -v

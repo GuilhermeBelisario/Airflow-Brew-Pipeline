@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  db:
+    container_name: postgredb
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: brewerydb
+      POSTGRES_USER: lofrey
+      POSTGRES_PASSWORD: lofrey
+    volumes:
+      - postgresql_bin:/usr/lib/postgresql
+      - postgresql_data:/usr/lib/postgresql/data
+      - ./sql/brewerydb.sql:/docker-entrypoint-initdb.d/brewerydb.sql
+      - ./files:/files
+    ports:
+     - 55432:5432
+    networks:
+     - db
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: postgres
+      PGADMIN_DEFAULT_PORT: 5050
+      PGADMIN_DEFAULT_SERVER_MODE: 'False'
+    volumes:
+      - postgresql_bin:/usr/lib/postgresql
+      - pgadmin_root_prefs:/root/.pgadmin
+      - pgadmin_working_dir:/var/lib/pgadmin
+      - ./files:/files
+    ports:
+      - 5050:80
+    
+    networks:
+     - db
+
+networks:
+  db:
+    driver: bridge
+
+volumes:
+  pgadmin_root_prefs:
+    driver: local
+  pgadmin_working_dir:
+    driver: local
+  postgresql_bin:
+    driver: local
+  postgresql_data:
+    driver: local
