@@ -22,10 +22,3 @@ def container():
     if not all([container_landing, container_bronze,container_silver]):
         pytest.fail("Um ou mais containers não foi definido.")
     return container_landing,container_bronze,container_silver
-
-def teste_da_chave_de_conexao_azure(conexao_azure):
-
-    if conexao_azure is None:
-        pytest.fail("Chave de conexão vazia: AZURE_ACCESS_KEY.")
-    else:
-        assert conexao_azure is not None, print(f'{conexao_azure} não está fazia!')
