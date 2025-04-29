@@ -34,7 +34,11 @@ spark = SparkSession.builder \
             "com.microsoft.azure:azure-storage:8.6.6,"
             "org.apache.hadoop:hadoop-azure-datalake:3.3.1,"
             "io.delta:delta-core_2.12:2.4.0,"
-            "org.postgresql:postgresql:42.6.0").getOrCreate()
+            "org.postgresql:postgresql:42.6.0") \
+    .config("spark.executor.memory", "4g") \
+    .config("spark.driver.memory", "2g") \
+    .config("spark.sql.shuffle.partitions", "8") \
+    .getOrCreate()
 
 #Config do Azure
 spark.conf.set("fs.azure.account.auth.type.lofrey.dfs.core.windows.net", "SharedKey")
