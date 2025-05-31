@@ -3,7 +3,6 @@ from silver_layer import transformar_dados
 from gold_layer import criar_tabelas_para_consumidores
 from gold_layer import gravar_tabelas_no_banco
 from pyspark.sql import SparkSession
-
 import os
 from dotenv import load_dotenv
 
@@ -13,8 +12,8 @@ load_dotenv()
 #Config do JDBC
 jdbc_url = "jdbc:postgresql://localhost:55432/brewerydb"
 connection_properties = {
-    "user": "lofrey",
-    "password": "lofrey",
+    "user": os.getenv("POSTGRE_USER"),
+    "password": os.getenv("POSTGRE_PASSWORD"),
     "driver": "org.postgresql.Driver"
     }
 
