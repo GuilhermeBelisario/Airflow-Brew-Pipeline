@@ -1,52 +1,106 @@
-version: '3'
+version: '3.8'
 
 services:
   db:
     container_name: postgredb
-    image: postgres:latest
+    image: postgres:13 
     environment:
-      POSTGRES_DB: brewerydb
-      POSTGRES_USER: lofrey
-      POSTGRES_PASSWORD: lofrey
+      - POSTGRES_DB=brewerydb
+      - POSTGRES_USER=lofrey
+      - POSTGRES_PASSWORD=lofrey
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - postgresql_bin:/usr/lib/postgresql
-      - postgresql_data:/usr/lib/postgresql/data
-      - ./sql/brewerydb.sql:/docker-entrypoint-initdb.d/brewerydb.sql
+      - postgresql_data:/var/lib/postgresql/data
+      - ./sql/brewerydb.sql:/docker-entrypoint-initdb.d/brewerydb.sql    
       - ./files:/files
     ports:
-     - 55432:5432
+      - "55432:5432"
     networks:
-     - db
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lofrey -d brewerydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
 
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
-      PGADMIN_DEFAULT_PASSWORD: postgres
-      PGADMIN_DEFAULT_PORT: 5050
-      PGADMIN_DEFAULT_SERVER_MODE: 'False'
+      - PGADMIN_DEFAULT_EMAIL=lofrey@lofrey.com
+      - PGADMIN_DEFAULT_PASSWORD=lofrey
     volumes:
-      - postgresql_bin:/usr/lib/postgresql
-      - pgadmin_root_prefs:/root/.pgadmin
-      - pgadmin_working_dir:/var/lib/pgadmin
-      - ./files:/files
+      - pgadmin_data:/var/lib/pgadmin
     ports:
-      - 5050:80
-    
+      - "5050:80"
     networks:
-     - db
+      - app_network
+    depends_on:
+      - db
+    restart: always
 
+  # --- AIRFLOW ---
+  airflow-init:
+  
+    image: apache/airflow:2.9.2
+    depends_on:
+      db:
+        condition: service_healthy 
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://lofrey:lofrey@db:5432/brewerydb
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    command: bash -c "airflow db init && airflow users create --role Admin --username admin --password admin --email admin@example.com --firstname admin --lastname admin"
+    networks:
+      - app_network
+    restart: on-failure
+
+  airflow-webserver:
+    image: apache/airflow:2.9.2
+    depends_on:
+      - airflow-init
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://lofrey:lofrey@db:5432/brewerydb
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__WEBSERVER__SECRET_KEY=lofrey
+    command: airflow webserver
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.2
+    depends_on:
+      airflow-webserver:
+        condition: service_healthy 
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://lofrey:lofrey@db:5432/brewerydb
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    command: airflow scheduler
+    networks:
+      - app_network
+    restart: always
+
+# Redes e Volumes
 networks:
-  db:
+  app_network:
     driver: bridge
 
 volumes:
-  pgadmin_root_prefs:
-    driver: local
-  pgadmin_working_dir:
-    driver: local
-  postgresql_bin:
-    driver: local
   postgresql_data:
-    driver: local
+  pgadmin_data:
