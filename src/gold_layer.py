@@ -1,13 +1,13 @@
 from pyspark.sql import SparkSession
 
-def criar_tabelas_para_consumidores(container_silver: str,spark: SparkSession, container_gold: str):
+def criar_tabelas_para_consumidores(container_silver: str,spark: SparkSession, container_gold: str,storage_account_name):
     
     if not all([container_silver,container_gold]):
         raise ValueError("Parâmetros de conexão não podem ser nulos")
     
     df = spark \
             .read \
-            .parquet(f'abfss://{container_silver}@lofrey.dfs.core.windows.net/*.parquet')
+            .parquet(f'abfss://{container_silver}@{storage_account_name}.dfs.core.windows.net/*.parquet')
 
     df_dim_brewery_type_table = df.select(
                 "brewery_type"
@@ -44,9 +44,12 @@ def criar_tabelas_para_consumidores(container_silver: str,spark: SparkSession, c
                 "nome_do_arquivo_original"
                 )
     
-    df_list = [df_dim_brewery_type_table,df_dim_brewery_table,df_dim_location_table,df_fact_brewery_operations_table]
-
-    return df_list
+    df_dict = {'dim_brewery_type': df_dim_brewery_type_table,
+            'dim_brewery': df_dim_brewery_table,
+            'dim_location': df_dim_location_table,
+            'fact_brewery_operations': df_fact_brewery_operations_table}
+    
+    return df_dict
     
 
 def gravar_tabelas_no_banco(df, table_name, jdbc_url, connection_properties):

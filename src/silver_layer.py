@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import concat, lit, regexp_replace, substring, col, to_date, when,concat_ws,year,month
 
 
-def transformar_dados(spark: SparkSession,container_silver: str, container_bronze: str):
+def transformar_dados(spark ,container_silver: str, container_bronze: str, storage_account_name: str):
     
     if not all([container_silver, container_bronze]):
         raise ValueError("Parâmetros de conexão não podem ser nulos")
@@ -10,7 +10,7 @@ def transformar_dados(spark: SparkSession,container_silver: str, container_bronz
     try:    
         df = spark.read \
                     .format('delta')\
-                    .load(f'abfss://{container_bronze}@lofrey.dfs.core.windows.net/*.parquet')
+                    .load(f'abfss://{container_bronze}@{storage_account_name}.dfs.core.windows.net/*.parquet')
 
         df = df.withColumnRenamed('stat_province', 'state') \
             .withColumnRenamed('postal_code', 'zip_code') \
@@ -57,7 +57,7 @@ def transformar_dados(spark: SparkSession,container_silver: str, container_bronz
                 .format("delta") \
                 .mode("overwrite") \
                 .partitionBy("data_de_processamento") \
-                .save(f"abfss://{container_silver}@lofrey.dfs.core.windows.net/brewery-silver-extracted")
+                .save(f"abfss://{container_silver}@{storage_account_name}.dfs.core.windows.net/brewery-silver-extracted")
         return print("Bronze Layer para Silver Layer finalizada!")
     
     except:

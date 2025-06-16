@@ -23,6 +23,7 @@ container_landing = os.getenv("CONTAINER_LANDING")
 container_bronze = os.getenv("CONTAINER_BRONZE")
 container_silver = os.getenv("CONTAINER_SILVER")
 container_gold = os.getenv("CONTAINER_GOLD")
+storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
 access_key = os.getenv("AZURE_ACCESS_KEY")
 
 #Abrindo Spark
@@ -40,32 +41,30 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 #Config do Azure
-spark.conf.set("fs.azure.account.auth.type.lofrey.dfs.core.windows.net", "SharedKey")
-spark.conf.set("fs.azure.account.key.lofrey.dfs.core.windows.net", access_key)
+spark.conf.set(f"fs.azure.account.auth.type.{storage_account_name}.dfs.core.windows.net", "SharedKey")
+spark.conf.set(f"fs.azure.account.key.{storage_account_name}.dfs.core.windows.net", access_key)
 
 
 if __name__ == '__main__':
     
-    try:
-        escrevendo_dados_na_bronze(spark, container_landing,container_bronze)
+    print('Iniciando a transição para camada bronze...')
+    escrevendo_dados_na_bronze(spark, container_landing,container_bronze,storage_account_name)
+    print('Concluida!')
 
-        transformar_dados(spark, container_silver,container_bronze)
+    print('Iniciando a camada bronze...')
+    transformar_dados(spark, container_silver,container_bronze,storage_account_name)
+    print('Concluida!')
+    
+    print('Iniciando a camada Silver...')
+    dfs_dict = criar_tabelas_para_consumidores(container_silver,spark, container_gold,storage_account_name)
+    print('Concluida!')
 
-        df_list = criar_tabelas_para_consumidores(container_silver,spark, container_gold)
-        
-        tabelas = [
-            ('dim_brewery_type', df_list[0]),
-            ('dim_brewery', df_list[1]),
-            ('dim_location', df_list[2]),
-            ('fact_brewery_operations', df_list[3])
-        ]
-        
-        for tabela, df in tabelas:
-            gravar_tabelas_no_banco(
-                df=df,
-                table_name=tabela,
-                jdbc_url=jdbc_url,
-                connection_properties=connection_properties
-            )
-    except:
-        print("Erro ao tentar executar o proceesso")
+    print('Iniciando a camada gold...')     
+    for nome, df in dfs_dict.values():
+        gravar_tabelas_no_banco(
+            df=df,
+            table_name=nome,
+            jdbc_url=jdbc_url,
+            connection_properties=connection_properties
+        )
+    print(f'Tabelas {list(dfs_dict.keys())} gravadas.')
