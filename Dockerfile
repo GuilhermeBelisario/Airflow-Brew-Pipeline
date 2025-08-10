@@ -1,12 +1,10 @@
 FROM python:latest
 WORKDIR /app
 
-RUN [pip install poetry]
+RUN [pip install uv]
 
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml uv.lock* ./
 
-RUN [poetry install]
+RUN [uv sync --system --no-dev]
 
 COPY src/ .
-
-CMD ["poetry", "run", "python", "main.py"]

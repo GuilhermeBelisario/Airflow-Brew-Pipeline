@@ -50,7 +50,6 @@ Utilizamos o Azure Data Factory para extrair dados de uma API e armazená-los em
 
     Os dados são organizados em tabelas dimensionais e fatos, prontos para serem consumidos por ferramentas de visualização.
 
-    O resultado final é armazenado no ADLS Gen 2 no formato Parquet.
 
 ### Orquestração com AirFlow
 

@@ -1,22 +1,15 @@
 [project]
-name = "Airflow-Brew-Pipeline"
+name = "airflow-brew-pipeline"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Guilherme Belisario",email = "gbo2000@outlook.com"}
-]
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "mermaid (>=0.3.2,<0.4.0)",
-    "mkdocs (>=1.6.1,<2.0.0)",
-    "pyspark (>=3.5.5,<4.0.0)",
-    "pytest (>=8.3.4,<9.0.0)",
-    "dotenv (>=0.9.9,<0.10.0)",
-    "azure-storage-blob (>=12.25.1,<13.0.0)"
+    "apache-airflow[celery]==3.0.4",
+    "azure-storage-blob>=12.26.0",
+    "mermaid-py>=0.8.0",
+    "mkdocs>=1.6.1",
+    "pyspark>=4.0.0",
+    "pytest>=8.4.1",
+    "python-dotenv>=1.1.1",
 ]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"

@@ -80,7 +80,7 @@ services:
     restart: always
 
   airflow-scheduler:
-    image: apache/airflow:2.9.2
+    build: .
     depends_on:
       airflow-webserver:
         condition: service_healthy 
