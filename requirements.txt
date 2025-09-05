@@ -3,3 +3,4 @@ mkdocs
 pyspark
 pytest
 python-dotenv
+azure.storage.blob

@@ -13,14 +13,13 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-      - ./sql/brewerydb.sql:/docker-entrypoint-initdb.d/brewerydb.sql    
+      - ./sql/brewerydb.sql:/docker-entrypoint-initdb.d/brewerydb.sql
       - ./files:/files
     ports:
       - "55432:5432"
     networks:
       - app_network
     healthcheck:
-      # Usando variável para o usuário no healthcheck
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
@@ -33,7 +32,6 @@ services:
     env_file:
       - config/postgredb.env
     environment:
-      # O Docker Compose vai buscar estas variáveis no arquivo .env
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     volumes:
@@ -48,14 +46,13 @@ services:
 
   # --- AIRFLOW ---
   airflow-init:
-    image: apache/airflow:2.9.2
+    image: apache/airflow:2.9.1
     env_file:
       - config/airflow.env
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
     environment:
-      # A string de conexão agora é totalmente composta por variáveis
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
     command: bash -c "airflow db init && airflow users create --role Admin --username admin --password admin --email admin@example.com --firstname admin --lastname admin"
@@ -64,11 +61,12 @@ services:
     restart: on-failure
 
   airflow-webserver:
-    image: apache/airflow:2.9.2
+    image: apache/airflow:2.9.1
     env_file:
       - config/airflow.env
     depends_on:
-      - airflow-init
+      airflow-init:
+        condition: service_completed_successfully
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -76,7 +74,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # A string de conexão agora é totalmente composta por variáveis
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW_SECRET_KEY}
@@ -86,24 +83,23 @@ services:
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 5
+      start_period: 30s
     restart: always
 
   airflow-scheduler:
-    # A diretiva 'build: .' exige que haja um Dockerfile no mesmo diretório
     build: .
     env_file:
       - config/airflow.env
     depends_on:
-      airflow-webserver:
-        condition: service_healthy 
+      airflow-init:
+        condition: service_completed_successfully
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
     environment:
-      # A string de conexão agora é totalmente composta por variáveis
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
     command: airflow scheduler

@@ -8,7 +8,8 @@ from src.gold_layer import gravar_tabelas_no_banco
 from src.utils import timing_decorator
 
 # Import das lib's do projeto
-from airflow.models.dag import dag, task
+from airflow.models.dag import dag
+from airflow.decorators import task
 from pyspark.sql import SparkSession
 from dotenv import load_dotenv
 from datetime import datetime

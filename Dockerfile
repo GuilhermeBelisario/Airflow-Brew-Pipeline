@@ -1,11 +1,9 @@
-FROM python:latest
+FROM apache/airflow:2.9.1
 
 WORKDIR /app
 
-RUN pip install uv
+COPY prod_requirements.txt ./
 
-COPY pyproject.toml uv.lock* ./
+RUN pip install -r prod_requirements.txt
 
-RUN ["uv", "sync"]
-
-COPY src/ .
+COPY dags/ .
