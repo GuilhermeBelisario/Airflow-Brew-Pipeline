@@ -1,6 +1,5 @@
 name: CI Pipeline
 
-# Define quando o pipeline será executado
 on:
   push:
     branches:
