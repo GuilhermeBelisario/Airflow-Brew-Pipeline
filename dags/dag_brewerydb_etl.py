@@ -16,7 +16,7 @@ from datetime import datetime
 import os
 
 
-load_dotenv()
+load_dotenv('/home/lofrey/workplace/Airflow-Brewery-API/Airflow-Brew-Pipeline/config/.env')
 
 #Config do JDBC
 jdbc_url = "jdbc:postgresql://localhost:55432/brewerydb"
@@ -51,13 +51,13 @@ def criar_spark():
     #Config do Azure
     spark.conf.set(f"fs.azure.account.auth.type.{storage_account_name}.dfs.core.windows.net", "SharedKey")
     spark.conf.set(f"fs.azure.account.key.{storage_account_name}.dfs.core.windows.net", access_key)
-
     return spark
 
+print("Iniciando o Pipeline...")
 @dag(
     dag_id="brewery_elt_pipeline",
     schedule="*/5 * * * *",
-    start_date=datetime(2025,10,15),
+    start_date=datetime(2025, 9, 10),
     catchup=False,
     tags=["elt", "spark", "brewery"]
 )

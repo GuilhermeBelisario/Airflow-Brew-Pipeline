@@ -2,7 +2,7 @@ import pytest
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('/home/lofrey/workplace/Airflow-Brewery-API/Airflow-Brew-Pipeline/config/.env')
 
 # Fixtures dos testes
 

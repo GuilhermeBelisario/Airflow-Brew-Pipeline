@@ -4,7 +4,7 @@ from azure.storage.blob import BlobServiceClient
 import os
 import pytest
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '../config/.env'))
 
 access_key = os.getenv("AZURE_ACCESS_KEY")
 

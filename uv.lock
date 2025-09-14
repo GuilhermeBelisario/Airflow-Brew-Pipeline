@@ -95,7 +95,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "apache-airflow", extras = ["celery"], specifier = "==2.9.1" },
+    { name = "apache-airflow", extras = ["celery"], specifier = "==2.9" },
     { name = "azure-storage-blob", specifier = ">=12.26.0" },
     { name = "mermaid-py", specifier = ">=0.8.0" },
     { name = "mkdocs", specifier = ">=1.6.1" },
@@ -146,7 +146,7 @@ wheels = [
 
 [[package]]
 name = "apache-airflow"
-version = "2.9.1"
+version = "2.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
@@ -188,7 +188,6 @@ dependencies = [
     { name = "markupsafe" },
     { name = "marshmallow-oneofschema" },
     { name = "mdit-py-plugins" },
-    { name = "methodtools" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "packaging" },
@@ -216,9 +215,9 @@ dependencies = [
     { name = "universal-pathlib" },
     { name = "werkzeug" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/59/5b/f43f2c933480d57e32b37426125507abaf9c9f8349ba10c9a0976ea6a21b/apache_airflow-2.9.1.tar.gz", hash = "sha256:96fff13cdf7b9445fe9706003bb530e2b0665f93ffb033596346259818bf53eb", size = 12381736, upload-time = "2024-05-06T07:01:31.611Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/c7/ea9142b1358befaea7ecd0c1d88df66fc6e22dab7f3a71e27b5f61a59a65/apache_airflow-2.9.0.tar.gz", hash = "sha256:bffa176e532d8fef5ccf463153958dd6b23c845b8eddd5ec5bac3a0bde47ae70", size = 12377995, upload-time = "2024-04-08T08:53:41.086Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/bd/8970524ddfc681437be898101cce4e09dfac3926550d7ee8d7fb04378ee7/apache_airflow-2.9.1-py3-none-any.whl", hash = "sha256:d5be569ad301aec48bfd405e6edb2df99e03e141a1c6b357d778a1fcac13f945", size = 13291017, upload-time = "2024-05-06T07:00:24.172Z" },
+    { url = "https://files.pythonhosted.org/packages/14/8b/fb3bba3ef53576dc16d3a110965f8144145f2b9f3399dae9318a46b4c0c5/apache_airflow-2.9.0-py3-none-any.whl", hash = "sha256:52494e03d8a5976491cf548320a3d42ed07f4150f1d05ab1dcc74906b570291f", size = 13285565, upload-time = "2024-04-08T08:52:40.086Z" },
 ]
 
 [package.optional-dependencies]
