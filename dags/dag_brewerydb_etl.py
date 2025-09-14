@@ -1,11 +1,11 @@
 # Import das funções do Pipeline
-from src.bronze_layer import escrevendo_dados_na_bronze
-from src.silver_layer import transformar_dados
-from src.gold_layer import criar_tabelas_para_consumidores
-from src.gold_layer import gravar_tabelas_no_banco
+from bronze_layer import escrevendo_dados_na_bronze
+from silver_layer import transformar_dados
+from gold_layer import criar_tabelas_para_consumidores
+from gold_layer import gravar_tabelas_no_banco
 
 # Import de uma ferramenta para gerar log
-from src.utils import timing_decorator
+from utils import timing_decorator
 
 # Import das lib's do projeto
 from airflow.models.dag import dag
@@ -30,7 +30,6 @@ connection_properties = {
 container_landing = os.getenv("CONTAINER_LANDING")
 container_bronze = os.getenv("CONTAINER_BRONZE")
 container_silver = os.getenv("CONTAINER_SILVER")
-container_gold = os.getenv("CONTAINER_GOLD")
 storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
 access_key = os.getenv("AZURE_ACCESS_KEY")
 
@@ -57,7 +56,7 @@ def criar_spark():
 
 @dag(
     dag_id="brewery_elt_pipeline",
-    schedule="* * * * *",
+    schedule="*/5 * * * *",
     start_date=datetime(2025,10,15),
     catchup=False,
     tags=["elt", "spark", "brewery"]
@@ -84,7 +83,7 @@ def brewery_elt_pipeline():
     def task_camada_silver():
         
         spark = criar_spark()
-        dfs_dict = criar_tabelas_para_consumidores(container_silver,spark, container_gold,storage_account_name)
+        dfs_dict = criar_tabelas_para_consumidores(container_silver,spark,storage_account_name)
         return dfs_dict
 
     @task(task_id="escrevendo_no_postgres")

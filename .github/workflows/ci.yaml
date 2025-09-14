@@ -26,4 +26,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests
+        env:
+          CONTAINER_LANDING: ${{ secrets.CONTAINER_LANDING }}
+          CONTAINER_BRONZE: ${{ secrets.CONTAINER_BRONZE }}
+          CONTAINER_SILVER: ${{ secrets.CONTAINER_SILVER }}
+          STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+          AZURE_ACCESS_KEY: ${{ secrets.AZURE_ACCESS_KEY }}
         run: pytest tests/ -v

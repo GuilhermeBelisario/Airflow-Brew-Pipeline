@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
 
-def criar_tabelas_para_consumidores(container_silver: str,spark: SparkSession, container_gold: str,storage_account_name):
-    
-    if not all([container_silver,container_gold]):
+def criar_tabelas_para_consumidores(container_silver: str,spark: SparkSession,storage_account_name):
+
+    if not all([container_silver]):
         raise ValueError("Parâmetros de conexão não podem ser nulos")
     
     df = spark \
