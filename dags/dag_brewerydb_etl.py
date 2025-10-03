@@ -51,7 +51,6 @@ def criar_spark():
             .config("spark.driver.memory", "4g") \
             .config("spark.executor.memory", "2g") \
             .config("spark.sql.shuffle.partitions", "8") \
-            .config("spark.driver.host", "localhost") \
             .getOrCreate()
 
         # --- Configuração de Acesso ao Azure Data Lake (Shared Key) ---

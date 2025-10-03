@@ -15,8 +15,8 @@ def escrevendo_dados_na_bronze(spark, container_landing: str, container_bronze: 
         .withColumn('pipeline_vinculado', lit('BreweryDB API - ETL'))
         .withColumn('nome_do_arquivo_original', lit("brewery-extrated"))
     )
-    
-    print(f"""SCHEMA:""")
+
+    print(f"""SCHEMA:{df.printSchema()}""")
 
     df.printSchema()
     if df is not None:  
