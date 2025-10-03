@@ -34,26 +34,44 @@ storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
 access_key = os.getenv("AZURE_ACCESS_KEY")
 
 def criar_spark():
-    #Abrindo Spark
-    spark = SparkSession.builder \
-        .appName("SparkELT") \
-        .config("spark.jars.packages", 
-                "org.apache.hadoop:hadoop-azure:3.3.1,"
-                "com.microsoft.azure:azure-storage:8.6.6,"
-                "org.apache.hadoop:hadoop-azure-datalake:3.3.1,"
-                "io.delta:delta-core_2.12:2.4.0,"
-                "org.postgresql:postgresql:42.6.0") \
-        .config("spark.executor.memory", "4g") \
-        .config("spark.driver.memory", "2g") \
-        .config("spark.sql.shuffle.partitions", "8") \
-        .getOrCreate()
+    """
+    Cria e retorna uma instância do SparkSession.
+    Inclui pacotes JARs necessários (Azure, Delta, Postgres) e otimizações de memória/timeout
+    para garantir estabilidade em ambientes Airflow/Docker com recursos limitados.
+    """
+    try:
 
-    #Config do Azure
-    spark.conf.set(f"fs.azure.account.auth.type.{storage_account_name}.dfs.core.windows.net", "SharedKey")
-    spark.conf.set(f"fs.azure.account.key.{storage_account_name}.dfs.core.windows.net", access_key)
+        spark = SparkSession.builder \
+            .appName("BreweryELT") \
+            .config("spark.jars", "/opt/jars/hadoop-azure-3.3.1.jar,"
+                          "/opt/jars/azure-storage-8.6.6.jar,"
+                          "/opt/jars/hadoop-azure-datalake-3.3.1.jar,"
+                          "/opt/jars/delta-core_2.12-2.4.0.jar,"
+                          "/opt/jars/postgresql-42.6.0.jar") \
+            .config("spark.driver.memory", "4g") \
+            .config("spark.executor.memory", "2g") \
+            .config("spark.sql.shuffle.partitions", "8") \
+            .config("spark.driver.host", "localhost") \
+            .getOrCreate()
+
+        # --- Configuração de Acesso ao Azure Data Lake (Shared Key) ---
+        # Esta configuração DEVE ser feita APÓS a criação do SparkSession
+        spark.conf.set(
+            f"fs.azure.account.auth.type.{storage_account_name}.dfs.core.windows.net", 
+            "SharedKey"
+        )
+        spark.conf.set(
+            f"fs.azure.account.key.{storage_account_name}.dfs.core.windows.net", 
+            access_key
+        )
+        
+    except Exception as e:
+        print(f"Erro ao criar SparkSession: {e}")
+        raise e
+        
     return spark
 
-print("Iniciando o Pipeline...")
+
 @dag(
     dag_id="brewery_elt_pipeline",
     schedule="*/5 * * * *",
@@ -66,14 +84,14 @@ def brewery_elt_pipeline():
     @task(task_id="transicao_para_camada_bronze")
     @timing_decorator
     def task_camada_landing():
-
+        print("Iniciando a tarefa de transição para a camada Bronze...")
         spark = criar_spark()
         escrevendo_dados_na_bronze(spark, container_landing,container_bronze,storage_account_name)
         
     @task(task_id="transicao_para_camada_silver")
     @timing_decorator
     def task_camada_bronze():
-
+        print("Iniciando a tarefa de transição para a camada Silver...")
         spark = criar_spark()
         transformar_dados(spark, container_silver,container_bronze,storage_account_name)
 
@@ -81,7 +99,7 @@ def brewery_elt_pipeline():
     @task(task_id="transicao_para_camada_gold")
     @timing_decorator
     def task_camada_silver():
-        
+        print("Iniciando a tarefa de transição para a camada Gold...")
         spark = criar_spark()
         dfs_dict = criar_tabelas_para_consumidores(container_silver,spark,storage_account_name)
         return dfs_dict
@@ -89,7 +107,7 @@ def brewery_elt_pipeline():
     @task(task_id="escrevendo_no_postgres")
     @timing_decorator
     def task_camada_gold(dfs_dict):
-
+        print("Iniciando a tarefa de escrita no Postgres...")
         for nome, df in dfs_dict.values():
             gravar_tabelas_no_banco(
                 df=df,
