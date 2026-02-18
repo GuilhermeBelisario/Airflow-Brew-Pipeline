@@ -8,18 +8,16 @@ import sys
 
 sys.path.insert(0, "../src")
 sys.path.insert(0, "../utils")
+sys.path.insert(0, "../env")
 
 # Import das funções do Pipeline
 from src.bronze_layer import escrevendo_dados_na_bronze
 from src.silver_layer import transformar_dados
 from src.gold_layer import criar_tabelas_para_consumidores, gravar_tabelas_no_banco
-
-# Import de uma ferramenta para gerar log
-from utils import timing_decorator
 from utils import criar_spark
 
 
-load_dotenv("/opt/airflow/config/.env")
+load_dotenv()
 
 # Config do JDBC
 connection_properties = {
@@ -37,6 +35,7 @@ storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
 access_key = os.getenv("AZURE_ACCESS_KEY")
 
 spark = criar_spark(storage_account_name, access_key)
+
 
 @dag(
     dag_id="brewery_elt_pipeline",

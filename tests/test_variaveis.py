@@ -1,13 +1,13 @@
 import pytest
 import os
+import sys
 from dotenv import load_dotenv
 
-load_dotenv(
-    "/home/lofrey/workplace/Airflow-Brewery-API/Airflow-Brew-Pipeline/config/.env"
-)
+sys.path.insert(0,"../env")
+
+load_dotenv()
 
 # Fixtures dos testes
-
 
 @pytest.fixture
 def conexao_azure():

@@ -34,7 +34,7 @@ services:
       - config/postgredb.env
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_EMAIL}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
@@ -121,6 +121,7 @@ services:
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./files:/files
+      - ./jars:/opt/jars
     ports:
       - "8080:8080"
     environment:
@@ -154,6 +155,7 @@ services:
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./files:/files
+       - ./jars:/opt/jars
     environment:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
