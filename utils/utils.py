@@ -1,5 +1,6 @@
 import logging
 from pyspark.sql import SparkSession
+from logger import LoggerReport
 
 
 def criar_spark(storage_account_name, access_key, app_name="BreweryELT"):
