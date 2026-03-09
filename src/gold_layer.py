@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession, DataFrame
 
 def criar_tabelas_para_consumidores(
     container_silver: str, spark: SparkSession, storage_account_name
-) -> str:
+) -> dict:
 
     if not all([container_silver]):
         raise ValueError("Parâmetros de conexão não podem ser nulos")

@@ -3,7 +3,10 @@ import pyspark.sql.functions as F
 
 
 def escrevendo_dados_na_bronze(
-    spark: SparkSession, container_landing: str, container_bronze: str, storage_account_name
+    spark: SparkSession,
+    container_landing: str,
+    container_bronze: str,
+    storage_account_name,
 ) -> str:
 
     if not all([container_landing, container_bronze]):

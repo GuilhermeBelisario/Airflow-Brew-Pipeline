@@ -80,7 +80,7 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_WORKER_WEBUI_PORT=8082
     volumes:
-      - ./jars:/opt/airflow/jars
+      - ./jars:/opt/jars
       - spark_data:/opt/spark-data
     ports:
       - "8082:8082"    
@@ -92,23 +92,25 @@ services:
 
   # ==================== AIRFLOW ====================
   airflow-init:
-    image: apache/airflow:2.9.1
+    build: .
     env_file:
       - config/airflow.env
     depends_on:
       db:
         condition: service_healthy
     environment:
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-    command: bash -c "airflow db migrate && airflow users create --role Admin --username admin --password admin --email admin@example.com --firstname admin --lastname admin || true"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    volumes: 
+      - ./dags:/opt/airflow/dags
     networks:
       - app_network
     restart: on-failure
 
-  airflow-webserver:
-    image: apache/airflow:2.9.1
-    container_name: airflow-webserver
+  airflow-apiserver:
+    build: .
+    container_name: airflow-apiserver
     env_file:
       - config/airflow.env
     depends_on:
@@ -129,19 +131,19 @@ services:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW_SECRET_KEY}
       - SPARK_MASTER_URL=spark://spark-master:7077
-    command: airflow webserver
+    command: api-server
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
-      timeout: 30s
+      timeout: 10s
       retries: 5
       start_period: 30s
     restart: always
 
   airflow-scheduler:
-    image: apache/airflow:2.9.1
+    build: .
     container_name: airflow-scheduler
     env_file:
       - config/airflow.env
@@ -155,16 +157,18 @@ services:
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./files:/files
-       - ./jars:/opt/jars
+      - ./jars:/opt/jars
     environment:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@${AIRFLOW_DB_HOST}:${AIRFLOW_DB_PORT}/${AIRFLOW_DB_NAME}
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - SPARK_MASTER_URL=spark://spark-master:7077
-    command: airflow scheduler
+    command: scheduler
     networks:
       - app_network
     restart: always
-
+    ports:
+      - "7078:7078"
+      - "7079:7079"
 # ==================== REDES E VOLUMES ====================
 networks:
   app_network:

@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import sys
 
-sys.path.insert(0, "../src")
+sys.path.insert(0, "/opt/airflow")
 sys.path.insert(0, "../utils")
 sys.path.insert(0, "../env")
 
@@ -34,9 +34,6 @@ container_silver = os.getenv("CONTAINER_SILVER")
 storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
 access_key = os.getenv("AZURE_ACCESS_KEY")
 
-spark = criar_spark(storage_account_name, access_key)
-
-
 @dag(
     dag_id="brewery_elt_pipeline",
     schedule=None,
@@ -48,6 +45,7 @@ def brewery_elt_pipeline():
 
     @task(task_id="transicao_para_camada_bronze")
     def task_camada_landing():
+        spark = criar_spark(storage_account_name, access_key)
         print("Iniciando a tarefa de transição para a camada Bronze...")
         escrevendo_dados_na_bronze(
             spark, container_landing, container_bronze, storage_account_name
@@ -55,6 +53,7 @@ def brewery_elt_pipeline():
 
     @task(task_id="transicao_para_camada_silver")
     def task_camada_bronze():
+        spark = criar_spark(storage_account_name, access_key)
         print("Iniciando a tarefa de transição para a camada Silver...")
         transformar_dados(
             spark, container_silver, container_bronze, storage_account_name
@@ -62,6 +61,7 @@ def brewery_elt_pipeline():
 
     @task(task_id="transicao_para_camada_gold")
     def task_camada_silver():
+        spark = criar_spark(storage_account_name, access_key)
         print("Iniciando a tarefa de transição para a camada Gold...")
         dfs_dict = criar_tabelas_para_consumidores(
             container_silver, spark, storage_account_name
@@ -70,6 +70,7 @@ def brewery_elt_pipeline():
 
     @task(task_id="escrevendo_no_postgres")
     def task_camada_gold(dfs_dict):
+        spark = criar_spark(storage_account_name, access_key)
         print("Iniciando a tarefa de escrita no Postgres...")
         for nome, df in dfs_dict.values():
             gravar_tabelas_no_banco(

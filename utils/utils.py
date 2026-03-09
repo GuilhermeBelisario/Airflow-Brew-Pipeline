@@ -41,6 +41,10 @@ def criar_spark(storage_account_name, access_key, app_name="BreweryELT"):
             .config("spark.sql.shuffle.partitions", "8")
             .config("spark.network.timeout", "600s")
             .config("spark.executor.heartbeatInterval", "60s")
+            .config("spark.driver.host", "airflow-scheduler")
+            .config("spark.driver.bindAddress", "0.0.0.0")
+            .config("spark.driver.port", "7078")
+            .config("spark.blockManager.port", "7079")
             .getOrCreate()
         )
 
